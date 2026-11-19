@@ -449,7 +449,7 @@ function goFS(){const el=document.documentElement,req=el.requestFullscreen||el.w
  try{const p=req.call(el);if(p&&p.catch)p.catch(()=>fsNote('전체화면이 막혀 있어요. 링크를 브라우저에서 직접 열어 주세요.'));try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('portrait');if(o&&o.catch)o.catch(()=>{})}catch(e){}}catch(e){fsNote('전체화면을 켤 수 없어요.')}}
 
 let PID='';try{PID=localStorage.getItem('subwayPid')||'';if(!PID){PID=Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);localStorage.setItem('subwayPid',PID)}}catch(e){PID='local'}
-const LB_URL='';
+const LB_URL='https://subway-game-498e3-default-rtdb.firebaseio.com';
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cleanName=t=>(String(t).replace(/[^0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ\u3040-\u309F\u30A0-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF66-\uFF9F_-]/g,'').slice(0,8))||'익명';
 let lbLocal={},lastT=0;try{lbLocal=JSON.parse(localStorage.getItem('subwayLB'))||{}}catch(e){}
