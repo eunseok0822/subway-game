@@ -668,7 +668,7 @@ function rbox(x,y,w,h,r,f,o){rr(x,y,w,h,Math.min(r,w/2,h/2));ctx.fillStyle=f;ctx
 function heart(x,y,z){ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(x,y+z*.9);ctx.bezierCurveTo(x-z*1.6,y-z*.2,x-z*.7,y-z*1.2,x,y-z*.35);ctx.bezierCurveTo(x+z*.7,y-z*1.2,x+z*1.6,y-z*.2,x,y+z*.9);ctx.fill()}
 
 function box3(x0,x1,y0,y1,z0,z1,c){poly(x1<=2.5?qX(x1,y0,y1,z0,z1):x0>=2.5?qX(x0,y0,y1,z0,z1):[],sh(c,.7));poly(qY(y1,x0,x1,z0,z1),sh(c,.88));poly(qZ(z1,x0,x1,y0,y1),sh(c,1.13))}
-function seat3(x,y){const pg=isPreg(x,y),e=!at(x,y),bl=e&&blocked(x,y),base=bl?'#a9adb4':pg?'#ee7fb0':'#323b86',lf=x<2,cx0=lf?.2:4,cx1=lf?1:4.8,bx0=lf?0:4.8,bx1=lf?.2:5,y0=y+.05,y1=y+.95,kk=K;
+function seat3(x,y){const pg=isPreg(x,y),e=!at(x,y),bl=e&&blocked(x,y),base=bl?'#a9adb4':pg?'#ee7fb0':'#6f747c',lf=x<2,cx0=lf?.2:4,cx1=lf?1:4.8,bx0=lf?0:4.8,bx1=lf?.2:5,y0=y+.05,y1=y+.95,kk=K;
  box3(bx0,bx1,y0,y1,.28,.95,base);box3(cx0,cx1,y0,y1,0,.28,base);
  const top=qZ(.28,cx0,cx1,y0,y1);
  if(e&&!bl)poly(top,pg?`rgba(255,255,255,${.3+.15*Math.sin(kk*5)})`:`rgba(90,240,130,${.55+.25*Math.sin(kk*6)})`);
