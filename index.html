@@ -1176,7 +1176,7 @@ function floorTex(L){SPK.forEach(([x,y,d,z])=>{if(x>1.75&&x<3.25)return;const p=
  for(const[a,b,s]of[[0,.55,1],[4.45,5,-1]]){for(let i=0;i<6;i++){const t0=a+(b-a)*i/6,t1=a+(b-a)*(i+1)/6,al=s>0?(1-i/6)*.16:(i/6)*.16;poly(qZ(0,t0,t1,0,9),`rgba(20,25,35,${al.toFixed(3)})`)}}
  for(let i=0;i<5;i++){poly(qZ(0,0,5,i*.12,(i+1)*.12),`rgba(20,25,35,${(.14-i*.028).toFixed(3)})`)}}
 function draw(){K=performance.now()/1000;const k=K,L=LINES[line],moving=phase==='run';txs=[];if(state==='idle'&&introOn){drawIntro();return}
- {const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1d1f23');g.addColorStop(1,'#2a2c30');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+ {const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1d2433');g.addColorStop(1,'#2e3850');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
  poly(qY(0,-.25,5.25,WH+1.15,9),'#101218');poly(qY(0,-.25,5.25,WH,WH+1.15),'#c9d1d3');poly(qY(0,-.25,5.25,WH+1.1,WH+1.15),'#eef2ef');{const bg=ctx.createLinearGradient(0,P3(2.5,0,WH)[1],0,P3(2.5,0,0)[1]);bg.addColorStop(0,'#d6dddf');bg.addColorStop(1,'#a9b3b6');ctx.fillStyle=bg;const q=qY(0,0,5,0,WH);ctx.beginPath();q.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill()}
  
  poly(qY(0,1.95,3.05,0,1.75),'#aab4b8');poly(qY(0,2.1,2.9,.9,1.55),'#2f383b');drawLed(stn(rd+1),EV&&state==='play'&&phase==='run'&&t>ANN&&Math.floor(K/1.6)%2===0?EVN[EV].led:null);
