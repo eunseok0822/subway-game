@@ -454,14 +454,20 @@ function goFS(){const el=document.documentElement,req=el.requestFullscreen||el.w
  try{const p=req.call(el);if(p&&p.catch)p.catch(()=>fsNote('전체화면이 막혀 있어요. 링크를 브라우저에서 직접 열어 주세요.'));try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('portrait');if(o&&o.catch)o.catch(()=>{})}catch(e){}}catch(e){fsNote('전체화면을 켤 수 없어요.')}}
 
 let PID='';try{PID=localStorage.getItem('subwayPid')||'';if(!PID){PID=Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);localStorage.setItem('subwayPid',PID)}}catch(e){PID='local'}
-const LB_URL='https://subway-game-498e3-default-rtdb.firebaseio.com';
+const LB_URL='https://subway-game-498e3-default-rtdb.firebaseio.com',FB_KEY='AIzaSyAis8oiOZZv92VBO-uC09odaPt95Izn0sg';try{const u=localStorage.getItem('subwayUid');if(u)PID=u}catch(e){}
+let fbTok=null,fbExp=0,fbBusy=null;
+function fbSave(tok,exp,uid,rt){fbTok=tok;fbExp=Date.now()+(+exp||3600)*1000;PID=uid;try{localStorage.setItem('subwayRT',rt);localStorage.setItem('subwayUid',uid)}catch(e){}return tok}
+async function fbAuth(){if(fbTok&&Date.now()<fbExp-60000)return fbTok;if(fbBusy)return fbBusy;fbBusy=(async()=>{try{let rt='';try{rt=localStorage.getItem('subwayRT')||''}catch(e){}
+ if(rt){const r=await fetch('https://securetoken.googleapis.com/v1/token?key='+FB_KEY,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(rt)});if(r.ok){const j=await r.json();return fbSave(j.id_token,j.expires_in,j.user_id,j.refresh_token)}}
+ const r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+FB_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({returnSecureToken:true})});if(!r.ok)return null;const j=await r.json();return fbSave(j.idToken,j.expiresIn,j.localId,j.refreshToken)}catch(e){return null}finally{fbBusy=null}})();return fbBusy}
+const lbDedup=a=>{const m={};a.forEach(e=>{if(!m[e.n]||m[e.n].s<e.s)m[e.n]=e});return Object.values(m)};
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cleanName=t=>(String(t).replace(/[^0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ\u3040-\u309F\u30A0-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF66-\uFF9F_-]/g,'').slice(0,8))||'익명';
 let lbLocal={},lastT=0;try{lbLocal=JSON.parse(localStorage.getItem('subwayLB'))||{}}catch(e){}
 function stageName(k){const m=String(k).match(/^(\d+)(x?)-(\w)$/);return m&&LINES[m[1]]&&TIMES[m[3]]?LINES[m[1]].n+(m[2]?' 급행':'')+' '+TIMES[m[3]][0]:k}
 function lbAdd(k,e){const a=lbLocal[k]||[];a.push(e);a.sort((x,y)=>y.s-x.s);lbLocal[k]=a.slice(0,10);try{localStorage.setItem('subwayLB',JSON.stringify(lbLocal))}catch(x){}}
-async function lbPush(k,e){if(!LB_URL)return false;try{const r=await fetch(`${LB_URL}/scores/${k}/${PID}.json`,{method:'PUT',body:JSON.stringify(e)});return r.ok}catch(x){return false}}
-async function lbGet(k){if(LB_URL){try{const r=await fetch(`${LB_URL}/scores/${k}.json`);if(r.ok){const o=(await r.json())||{};return{online:true,rows:Object.keys(o).map(id=>({id,n:cleanName(o[id].n),s:+o[id].s||0,r:+o[id].r||0})).sort((a,b)=>b.s-a.s).slice(0,15)}}}catch(x){}}
+async function lbPush(k,e){if(!LB_URL)return false;try{const tk=await fbAuth();if(!tk)return false;const r=await fetch(`${LB_URL}/scores/${k}/${PID}.json?auth=${tk}`,{method:'PUT',body:JSON.stringify(e)});return r.ok}catch(x){return false}}
+async function lbGet(k){if(LB_URL){try{const r=await fetch(`${LB_URL}/scores/${k}.json`);if(r.ok){const o=(await r.json())||{};return{online:true,rows:lbDedup(Object.keys(o).map(id=>({id,n:cleanName(o[id].n),s:+o[id].s||0,r:+o[id].r||0}))).sort((a,b)=>b.s-a.s).slice(0,15)}}}catch(x){}}
  return{online:false,rows:(lbLocal[k]||[]).map((e,i)=>({id:'l'+i,n:e.n,s:e.s,r:e.r,t:e.t}))}}
 async function showBoard(k,from){panel(`<h2>순위</h2><p class="sm">${esc(stageName(k))}</p><div id="bl"><div class="mld"><span>로딩중</span><i></i></div></div>`+(from==='over'?'<button class="mb" id="b1">다시하기</button><button class="mb sub" id="b2">메인으로</button>':'<button class="mb sub" id="bk">뒤로</button>'));
  if(from==='over'){$('b1').onclick=showSelect;$('b2').onclick=showMenu}else $('bk').onclick=showRecords;
@@ -492,8 +498,8 @@ const TW={b:2,d:1.8,c:1.2,a:1.1,e:1},TORD=['b','d','c','a','e'];
 const lineTotal=pre=>Math.round(TORD.reduce((s,t)=>s+(bests[pre+t]||{score:0}).score*TW[t],0));
 const lineId=pre=>pre.replace('-','');
 async function lbPushLine(pre){const s=lineTotal(pre);if(!LB_URL||!s)return false;let n='';try{n=localStorage.getItem('subwayName')||''}catch(e){}
- try{const r=await fetch(`${LB_URL}/lines/${lineId(pre)}/${PID}.json`,{method:'PUT',body:JSON.stringify({n:cleanName(n),s,t:Date.now()})});return r.ok}catch(x){return false}}
-async function lbGetLine(pre){if(LB_URL){try{const r=await fetch(`${LB_URL}/lines/${lineId(pre)}.json`);if(r.ok){const o=(await r.json())||{};return{online:true,rows:Object.keys(o).map(id=>({id,n:cleanName(o[id].n),s:+o[id].s||0})).filter(e=>e.s>0).sort((a,b)=>b.s-a.s)}}}catch(x){}}
+ try{const tk=await fbAuth();if(!tk)return false;const r=await fetch(`${LB_URL}/lines/${lineId(pre)}/${PID}.json?auth=${tk}`,{method:'PUT',body:JSON.stringify({n:cleanName(n),s,t:Date.now()})});return r.ok}catch(x){return false}}
+async function lbGetLine(pre){if(LB_URL){try{const r=await fetch(`${LB_URL}/lines/${lineId(pre)}.json`);if(r.ok){const o=(await r.json())||{};return{online:true,rows:lbDedup(Object.keys(o).map(id=>({id,n:cleanName(o[id].n),s:+o[id].s||0})).filter(e=>e.s>0)).sort((a,b)=>b.s-a.s)}}}catch(x){}}
  const s=lineTotal(pre);let n='';try{n=localStorage.getItem('subwayName')||''}catch(e){}return{online:false,rows:s?[{id:PID,n:n?cleanName(n):'나',s}]:[]}}
 let recSel=null;
 let recBack=null;function showRecords(back,pick){if(back!==undefined)recBack=typeof back==='function'?back:null;if(pick)recSel=pick;const tabs=[];for(const k in LINES){tabs.push([k+'-',k,LINES[k].c,'']);if(LINES[k].ex)tabs.push([k+'x-',k,LINES[k].c,'급행'])}
@@ -662,7 +668,7 @@ function rbox(x,y,w,h,r,f,o){rr(x,y,w,h,Math.min(r,w/2,h/2));ctx.fillStyle=f;ctx
 function heart(x,y,z){ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(x,y+z*.9);ctx.bezierCurveTo(x-z*1.6,y-z*.2,x-z*.7,y-z*1.2,x,y-z*.35);ctx.bezierCurveTo(x+z*.7,y-z*1.2,x+z*1.6,y-z*.2,x,y+z*.9);ctx.fill()}
 
 function box3(x0,x1,y0,y1,z0,z1,c){poly(x1<=2.5?qX(x1,y0,y1,z0,z1):x0>=2.5?qX(x0,y0,y1,z0,z1):[],sh(c,.7));poly(qY(y1,x0,x1,z0,z1),sh(c,.88));poly(qZ(z1,x0,x1,y0,y1),sh(c,1.13))}
-function seat3(x,y){const pg=isPreg(x,y),e=!at(x,y),bl=e&&blocked(x,y),base=bl?'#a9adb4':pg?'#ee7fb0':'#6f747c',lf=x<2,cx0=lf?.2:4,cx1=lf?1:4.8,bx0=lf?0:4.8,bx1=lf?.2:5,y0=y+.05,y1=y+.95,kk=K;
+function seat3(x,y){const pg=isPreg(x,y),e=!at(x,y),bl=e&&blocked(x,y),base=bl?'#a9adb4':pg?'#ee7fb0':'#323b86',lf=x<2,cx0=lf?.2:4,cx1=lf?1:4.8,bx0=lf?0:4.8,bx1=lf?.2:5,y0=y+.05,y1=y+.95,kk=K;
  box3(bx0,bx1,y0,y1,.28,.95,base);box3(cx0,cx1,y0,y1,0,.28,base);
  const top=qZ(.28,cx0,cx1,y0,y1);
  if(e&&!bl)poly(top,pg?`rgba(255,255,255,${.3+.15*Math.sin(kk*5)})`:`rgba(90,240,130,${.55+.25*Math.sin(kk*6)})`);
@@ -1166,21 +1172,21 @@ function floorTex(L){SPK.forEach(([x,y,d,z])=>{if(x>1.75&&x<3.25)return;const p=
  for(const[a,b,s]of[[0,.55,1],[4.45,5,-1]]){for(let i=0;i<6;i++){const t0=a+(b-a)*i/6,t1=a+(b-a)*(i+1)/6,al=s>0?(1-i/6)*.16:(i/6)*.16;poly(qZ(0,t0,t1,0,9),`rgba(20,25,35,${al.toFixed(3)})`)}}
  for(let i=0;i<5;i++){poly(qZ(0,0,5,i*.12,(i+1)*.12),`rgba(20,25,35,${(.14-i*.028).toFixed(3)})`)}}
 function draw(){K=performance.now()/1000;const k=K,L=LINES[line],moving=phase==='run';txs=[];if(state==='idle'&&introOn){drawIntro();return}
- {const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1d2433');g.addColorStop(1,'#2e3850');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
- poly(qY(0,-.25,5.25,WH+1.15,9),'#101218');poly(qY(0,-.25,5.25,WH,WH+1.15),'#8fa6c4');poly(qY(0,-.25,5.25,WH+1.1,WH+1.15),'#fffdf5');poly(qY(0,0,5,0,WH),'#8fa6c4');
+ {const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1d1f23');g.addColorStop(1,'#2a2c30');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+ poly(qY(0,-.25,5.25,WH+1.15,9),'#101218');poly(qY(0,-.25,5.25,WH,WH+1.15),'#c9d1d3');poly(qY(0,-.25,5.25,WH+1.1,WH+1.15),'#eef2ef');{const bg=ctx.createLinearGradient(0,P3(2.5,0,WH)[1],0,P3(2.5,0,0)[1]);bg.addColorStop(0,'#d6dddf');bg.addColorStop(1,'#a9b3b6');ctx.fillStyle=bg;const q=qY(0,0,5,0,WH);ctx.beginPath();q.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill()}
  
- poly(qY(0,1.95,3.05,0,1.75),'#6d84a3');poly(qY(0,2.1,2.9,.9,1.55),moving?'#2b3a52':'#bfe6f5');drawLed(stn(rd+1),EV&&state==='play'&&phase==='run'&&t>ANN&&Math.floor(K/1.6)%2===0?EVN[EV].led:null);
+ poly(qY(0,1.95,3.05,0,1.75),'#aab4b8');poly(qY(0,2.1,2.9,.9,1.55),'#2f383b');drawLed(stn(rd+1),EV&&state==='play'&&phase==='run'&&t>ANN&&Math.floor(K/1.6)%2===0?EVN[EV].led:null);
  poly(qY(9,-.25,0,0,-.35),'#8e939b');poly(qY(9,5,5.25,0,-.35),'#8e939b');
- poly(qZ(0,0,5,0,9),'#c9ccd1');poly(qZ(0,1.75,3.25,0,9),L.c);floorTex(L);
- poly(qY(9,0,5,-.4,0),'#9da1a8');
+ poly(qZ(0,0,5,0,9),'#a7adab');poly(qZ(0,1.75,3.25,0,9),L.c);floorTex(L);
+ poly(qY(9,0,5,-.4,0),'#7d8381');
  
  for(const side of[0,1]){const X=side?5:0,X2=side?5.25:-.25;
-  poly(qX(X,0,9,0,(WH+1.15)),'#6d8bb0');poly(qX(X,0,9,1.43,1.65),L.c);poly(qX(X,0,9,2.93,(WH+1.15)),'#f3f0e6');poly(qZ((WH+1.15),Math.min(X,X2),Math.max(X,X2),0,9),'#fffdf5');
-  for(const[a,b]of[[0,4],[5,9]]){poly(qX(X,a+.12,b-.12,1.65,2.93),moving?'#2b3a52':'#bfe6f5');if(moving&&t<3)poly(qX(X,a+.12,b-.12,1.65,2.93),`rgba(255,245,210,${(1-t/3)*.65})`)}
+  poly(qX(X,0,9,0,(WH+1.15)),'#b9c3bd');poly(qX(X,0,9,1.43,1.65),'#23282b');poly(qX(X,0,9,2.93,(WH+1.15)),'#e3e9e5');poly(qZ((WH+1.15),Math.min(X,X2),Math.max(X,X2),0,9),'#eef2ef');
+  for(const[a,b]of[[0,4],[5,9]]){poly(qX(X,a+.12,b-.12,1.65,2.93),moving?'#252c2f':'#7d888c');if(moving&&t<3)poly(qX(X,a+.12,b-.12,1.65,2.93),`rgba(255,245,210,${(1-t/3)*.65})`)}
   for(let yy=1;yy<9;yy++)if(yy!==4&&yy!==5)seg(P3(X,yy,0),P3(X,yy,1.43),1,'rgba(0,0,0,.12)');for(const[a,b]of[[0,4],[5,9]]){const m=(a+b)/2;poly([P3(X,m-.9,2.9),P3(X,m-.5,2.9),P3(X,m-1.1,1.68),P3(X,m-1.5,1.68)],'rgba(255,255,255,.07)');poly([P3(X,m+.3,2.9),P3(X,m+.45,2.9),P3(X,m-.05,1.68),P3(X,m-.2,1.68)],'rgba(255,255,255,.06)')}
   if(moving)for(let i=0;i<8;i++){const yy=(k*3.4+i*1.13)%9,ok=(a,b)=>yy>a&&yy+.5<b;if(ok(.15,3.85)||ok(5.15,8.85)){const z=1.85+(i%3)*.44;seg(P3(X,yy,z),P3(X,yy+.5,z),i%3?3:2,i%3?'rgba(255,226,140,.85)':'rgba(160,210,255,.85)')}}
   const sOpen=doorSide==='B'||doorSide===(side?'R':'L'),o=(sOpen?door:0)*.42;
-  poly(qX(X,4,5,0,2),'#e9e3c9');poly(qX(X,4.04,4.48-o,0,1.95),'#9db4d0');poly(qX(X,4.52+o,4.96,0,1.95),'#9db4d0');if(sOpen&&phase==='run'&&annD)poly(qX(X,4,5,0,2),'rgba(255,230,80,'+(.25+.25*Math.sin(k*10))+')');
+  poly(qX(X,4,5,0,2),'#9aa5a9');poly(qX(X,4.04,4.48-o,0,1.95),'#d3dadc');poly(qX(X,4.52+o,4.96,0,1.95),'#d3dadc');if(sOpen&&phase==='run'&&annD)poly(qX(X,4,5,0,2),'rgba(255,230,80,'+(.25+.25*Math.sin(k*10))+')');
   {const c=P3(X,4.5,2.12);dot(c[0],c[1],c[2]*.07,sOpen&&phase==='door'&&Math.sin(k*14)>0?'#ff4b3a':sOpen&&phase==='run'&&annD?'#ffb020':'#5a1f1a')}}
  const it=[];
  for(const x of[0,C-1])for(let y=0;y<R;y++)if(y!==4)it.push({y:y+.23,f:()=>seat3(x,y)});
