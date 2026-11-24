@@ -306,16 +306,10 @@ function showNick(first,back){const cur=getNick();if(first){nickOn=true;applyVol
 let TUT=null;const needTut=()=>{try{return !localStorage.getItem('subwayTut')}catch(e){return false}};
 const TSEAT={x:0,y:2};
 const TSTEPS=[
- {t:n=>`안녕하세요, ${n}님!\n처음 오셨군요.`},
- {t:()=>'이곳은 지하철 안이에요.\n화살표가 있는 사람이 바로 나예요.',ar:'me'},
- {t:()=>'그런데… 빈자리가 한 군데도 없네요.'},
- {t:()=>'서 있으면 위의 스트레스 게이지가 조금씩 차올라요.\n가득 차면 게임 오버예요!',on:()=>{stress=35},hl:'gauge'},
- {t:()=>'앗! 저기 가방을 챙기는 사람이 보여요.\n곧 내릴 것 같아요.',ar:'seat',on:()=>{const n=tutLeaver();if(n)n.act='pack'}},
- {t:()=>'화면을 밀어서(스와이프)\n저 사람 바로 옆으로 가 볼까요?',ar:'seat',wait:'near'},
- {t:()=>'좋아요! 곧 역에 도착해요.\n문이 열리고 저 사람이 일어나면,\n그 자리 쪽으로 밀어서 앉으세요!',ar:'seat',wait:'sit',on:()=>{t=Math.min(t,2.2)}},
- {t:()=>'앉기 성공!\n이렇게 내릴 사람을 먼저 찾아서\n빈자리를 차지하면 돼요.'},
- {t:()=>'가끔은 가방만 챙기고\n안 내리는 사람도 있으니 조심하세요!'},
- {t:n=>`이제 진짜 지하철을 타러 가 볼까요?\n좋은 자리 차지하세요, ${n}님!`,end:1}];
+ {t:n=>`안녕하세요, ${n}님! 화살표가 바로 나예요.\n서 있으면 위의 스트레스 게이지가 차올라요.\n가득 차면 게임 오버!`,ar:'me',hl:'gauge',on:()=>{stress=35}},
+ {t:()=>'가방을 챙기는 사람은 곧 내려요.\n화면을 밀어서 저 사람 옆으로 가 보세요!',ar:'seat',wait:'near',on:()=>{const n=tutLeaver();if(n)n.act='pack'}},
+ {t:()=>'역에 도착해서 저 사람이 일어나면\n그 자리 쪽으로 밀어서 앉으세요!',ar:'seat',wait:'sit',on:()=>{t=Math.min(t,2.2)}},
+ {t:n=>`앉기 성공! 가방만 챙기고\n안 내리는 사람도 있으니 조심하세요.\n좋은 자리 차지하세요, ${n}님!`,end:1}];
 function tutLeaver(){return npcs.find(n=>n.seated&&n.x===TSEAT.x&&n.y===TSEAT.y)}
 function tutStart(){line=1;time='e';expr=false;begin();
  EV=null;brakeAt=-1;rushOn=false;vilSeat=[];
@@ -331,7 +325,7 @@ function tutShow(){const S=TSTEPS[TUT.step],nm=cleanName(getNick()||'')||'승객
 function tutNext(){if(!TUT)return;if(TSTEPS[TUT.step].end)return tutEnd();TUT.step++;sfx('step');tutShow()}
 function tutEnd(){try{localStorage.setItem('subwayTut','1')}catch(e){}TUT=null;document.body.classList.remove('tuthl');const b=$('tutb');if(b)b.remove();try{speechSynthesis.cancel()}catch(e){}state='idle';phase='idle';withLoading(showMenu,900)}
 function tutTick(){if(!TUT)return;const S=TSTEPS[TUT.step];
- if(TUT.step<6&&phase==='run')t=Math.max(t,CYC*.8);
+ if(TUT.step<2&&phase==='run')t=Math.max(t,CYC*.8);
  if(S.wait==='near'&&!me.sit&&me.x===TSEAT.x+1&&me.y===TSEAT.y)tutNext();
  if(S.wait==='sit'&&me.sit&&after==='ok')tutNext();
  if(phase==='door')dp=Math.min(dp,.6);if(phase==='pause')pt=Math.max(pt,.5)}
