@@ -200,7 +200,7 @@ const warnText=()=>{const a=[];if(npcs.some(n=>n.v&&!n.seated))a.push('가방맨
 const blocked=(x,y)=>npcs.some(n=>(n.sp==='wide'||n.sp==='bed')&&n.seated&&n.x===x&&Math.abs(n.y-y)===1);
 const TIMES={a:['06:00 새벽',.4],b:['08:00 출근',1],c:['14:00 낮',.45],d:['18:00 퇴근',.9],e:['23:00 심야',.35]};
 const COLS=['#8fa3c9','#c99a9a','#9bbfae','#cdbf93','#b5a3cf','#a3a6ad','#cfa3b9','#93bccc','#c2ad99','#aab890','#d6d6dc','#7f8798'],HAIR=['#1f1a1a','#4a2f1d','#7a4a2a','#c9a24a','#9aa3ad','#3b4fa8','#7b3b3b'],SKIN=['#fde0c4','#f5c9a0','#d9a27a','#b57a52','#8a5a3c'],BAGC=['#8d6e63','#455a64','#7b1fa2','#00796b','#c0a060'];
-const CH={s:{n:'학생',d:'앉기 속도 보너스 +50%',col:'#2a4d8f'},w:{n:'직장인',d:'스트레스 증가 -15%',col:'#3b3f48'},u:{n:'대학생',d:'붐비는 자리·문 앞 영향 절반',col:'#ff8a3d'},d:{n:'탐정',d:'진짜 내릴 사람 머리 위에 반짝임이 보여요',col:'#2b2d36'},h:{n:'등산객',d:'밀치기 빌런에게 밀리지 않아요',col:'#8a8f98'},t:{n:'관광객',d:'가끔 앞사람이 자리를 양보해 줘요',col:'#6a8fe0'}};
+const CH={s:{n:'학생',d:'앉으면 스트레스 회복 +30%',col:'#2a4d8f'},w:{n:'직장인',d:'스트레스 증가 -15%',col:'#3b3f48'},u:{n:'대학생',d:'붐비는 자리·문 앞 영향 절반',col:'#ff8a3d'},d:{n:'탐정',d:'진짜 내릴 사람 머리 위에 반짝임이 보여요',col:'#2b2d36'},h:{n:'등산객',d:'밀치기 빌런에게 밀리지 않아요',col:'#8a8f98'},t:{n:'관광객',d:'가끔 앞사람이 자리를 양보해 줘요',col:'#6a8fe0'}};
 var ctx=document.getElementById('cv').getContext('2d');const cv=document.getElementById('cv'),dpr=Math.min(2,devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
 const $=id=>document.getElementById(id),ov=$('ov'),tEl=$('toast');
 let RR=Math.random,line=2,time='b',diff=1,npcs=[],ghosts=[],preg=[[0,3]],vilSeat=[],ch='s',me={x:2,y:4,px:2,py:4,sit:false,dir:1,skin:'#f1c9a5',hair:'#222'},stress=0,score=0,combo=0,okN=0,rd=0,phase='idle',t=0,dp=0,pt=0,clock=0,annD=false,bagD=false,door=0,after='',state='idle',last=performance.now(),tt,best=0,K=0,muted=false,AC=null,paused=false,expr=false,so=0,stInfo=[1,1],hudOn=null,txs=[],cueLv=1,ringLv=1,doorSide='B',rushOn=false,rushDone=false,seenV=new Set(),parts=[],ftx=[];
@@ -257,7 +257,7 @@ const buzz=p=>{if(vol.vib!==false)try{navigator.vibrate&&navigator.vibrate(p)}ca
 const SFX={dash:[[600,0,.06,'sawtooth',.3],[900,.05,.06,'sawtooth',.3],[1400,.1,.08,'sine',.3]],click:[[880,0,.05]],step:[[330,0,.04,'square',.25]],ok:[[523,0,.1],[659,.09,.1],[784,.18,.1],[1047,.27,.25]],steal:[[784,0,.08],[988,.08,.08],[1319,.16,.08],[1568,.24,.3]],no:[[330,0,.15],[262,.15,.15],[196,.3,.3]],bad:[[160,0,.2,'sawtooth'],[120,.2,.3,'sawtooth']],chime:[[784,0,.7,'sine',.5],[1568,0,.4,'sine',.1],[659,.4,.7,'sine',.5],[1318,.4,.4,'sine',.1],[523,.8,.9,'sine',.5],[1046,.8,.5,'sine',.1]],beep:[[1200,0,.1],[1200,.18,.1]],pop:[[900,0,.05,'square',.4],[300,.04,.09,'square',.3]],dooropen:[[1175,0,.12,'sine',.4],[880,.14,.25,'sine',.4]],doorclose:[[1200,0,.1],[1200,.2,.1],[1200,.4,.1]],over:[[392,0,.2],[330,.2,.2],[262,.4,.2],[196,.6,.6]]};
 function sfx(n){if(!AC)return;try{(SFX[n]||[]).forEach(([f,s,d,ty,g])=>note(f,AC.currentTime+s,d,ty||'square',g||.5,sG))}catch(e){}}
 let EV=null,brakeAt=-1,stunU=0;const EVN={crowd:{n:'환승역 인파',led:'환승역 인파',m:'서 있는 승객이 많아요',v:'다음 역은 환승역입니다. 혼잡하오니 주의해 주십시오.'},brake:{n:'급정거 주의',led:'급정거 주의',m:'열차가 갑자기 멈출 수 있어요',v:'열차가 급정거할 수 있으니 손잡이를 꼭 잡아 주십시오.'},hot:{n:'에어컨 고장',led:'차내 더위',m:'스트레스가 더 빨리 올라요',v:'에어컨 고장으로 차내가 덥습니다. 양해 부탁드립니다.'},delay:{n:'열차 지연',led:'열차 지연',m:'다음 역까지 오래 걸려요',v:'앞 열차와의 간격 조정으로 잠시 지연되겠습니다.'}};
-function doBrake(){const L=npcs.filter(n=>!n.seated&&!n.tk);if(!me.sit)L.push(me);L.sort((a,b)=>b.y-a.y);L.forEach(n=>{const ny=n.y+1;if(ny>=R||at(n.x,ny)||isSeat(n.x,ny))return;n.y=ny});if(!me.sit)stunU=clock+.6;sfx('bad');buzz([60,30,90]);toast('급정거! 몸이 밀렸어요','ev')}
+function doBrake(){const L=npcs.filter(n=>!n.seated&&!n.tk);if(!me.sit)L.push(me);L.sort((a,b)=>b.y-a.y);L.forEach(n=>{const ny=n.y+1;if(ny>=R||at(n.x,ny)||isSeat(n.x,ny))return;n.y=ny});if(ch==='w'&&!me.sit){const ny=me.y+1;if(ny<R&&!at(me.x,ny)&&!isSeat(me.x,ny))me.y=ny}if(!me.sit)stunU=clock+.6;sfx('bad');buzz([60,30,90]);toast('급정거! 몸이 밀렸어요','ev')}
 function startRound(keep){diff=calc();ghosts=[];vilSeat=[];RR=rngFor('r'+rd+(keep?'k':'n'));rushOn=false;rushDone=false;
  const pr=Math.min(1,rd/20);CYC=Math.round(15-3*pr)+(expr?1:0)-(line==2?2:0);ANN=Math.max(6,Math.round(CYC*.5));BAG=Math.max(2,3-pr*.5);DOOR=3.9-pr*.5;
  const[c0,x0]=stat(stn(rd+1)),cc=Math.min(3,c0+(expr&&c0<2?1:0)),xx=x0;stInfo=[cc,xx];cueLv=Math.max(0,1-rd/(Math.max(4,Math.round(18-8*diff))*(1+.15*UP.c)));ringLv=rd<2?1:rd<3?.6:0;EV=null;brakeAt=-1;if(rd>=2&&RR()<.6){EV=rnd(['crowd','brake','hot','delay'])}if(line==7&&rd>=1&&!EV&&RR()<.55)EV='brake';
@@ -266,7 +266,7 @@ function startRound(keep){diff=calc();ghosts=[];vilSeat=[];RR=rngFor('r'+rd+(kee
  npcs.forEach(n=>{n.act='';n.lv=0;n.tk=0;n.pe=0;n.role='stayer';n.sp=null});
  const s=shuf(npcs.filter(n=>n.seated)),lv=Math.max(1,Math.min(5,Math.round(3.4-diff*1.8)+[0,0,1][xx]))+(EV==='crowd'?1:0),fk=Math.min(5,Math.round(1.5+diff*2.5));
  s.forEach((n,i)=>n.role=i<lv?'leaver':i<lv+fk?'faker':'stayer');
- const pf=Math.min(.55,Math.max(0,(rd-2)*.07));s.forEach((n,i)=>{if(n.role==='leaver'&&i>0&&RR()<pf)n.role='fo'});{let bn=(rd<2?0:(RR()<Math.min(.75,.35+.04*rd)?1:0)+(rd>=8&&RR()<.35?1:0))+(line==4&&rd>=1?1+(rd>=6?1:0):0);const st=shuf(s.filter(n=>n.role==='stayer'));while(bn-->0&&st.length)st.pop().role='bluff'}if(ch==='t'&&RR()<.4){const st=s.filter(n=>n.role==='stayer'&&!n.sp);if(st.length)st[RR()*st.length|0].role='yield'}
+ const pf=Math.min(.55,Math.max(0,(rd-2)*.07));s.forEach((n,i)=>{if(n.role==='leaver'&&i>0&&RR()<pf)n.role='fo'});{let bn=(rd<2?0:(RR()<Math.min(.75,.35+.04*rd)?1:0)+(rd>=8&&RR()<.35?1:0))+(line==4&&rd>=1?1+(rd>=6?1:0):0)+(ch==='t'&&rd>=1?1:0);const st=shuf(s.filter(n=>n.role==='stayer'));while(bn-->0&&st.length)st.pop().role='bluff'}if(ch==='t'&&RR()<.4){const st=s.filter(n=>n.role==='stayer'&&!n.sp);if(st.length)st[RR()*st.length|0].role='yield'}
  const SA=SPA[line],want=[],l1=line==1;if(rd>=(l1?2:3)&&RR()<(l1?.8:.5))want.push(rnd(SA));if(l1&&rd>=5&&RR()<.5)want.push(rnd(['drunk','caller','gum','rush']));if(rd>=8&&RR()<.45)want.push(rd>=14?rnd(['drunk','wide','caller','pusher']):rnd(SA));
  let wd=0;want.forEach(w=>{if((w==='wide'||w==='bed')&&!wd++){const c=s.filter(n=>n.role==='stayer'&&!n.sp);if(c.length)rnd(c).sp=w}});
  if(want.includes('rush'))rushOn=true;
@@ -472,11 +472,11 @@ function over(){if(TUT){stress=0;return}playOver();playGoJ();buzz(220);plays++;o
  showResult(key,r)}
 function success(){buzz(60);phase='pause';pt=1.4;after='ok';
  if(isPreg(me.x,me.y)){sfx('bad');buzz([120,60,120]);const pen=Math.round(150*(1+diff));score-=pen;ftx.push({x:scr(me.x,me.y,1.6)[0],y:scr(me.x,me.y,1.6)[1],s:'-'+pen,l:1.3,c:'#ff5a4a'});combo=0;stress=Math.max(0,stress-10);toast(`임산부석! −${pen}`,'no');setMsg('양보가 필요한 좌석입니다. 점수가 깎였어요.');return}
- combo++;okN++;if(!TUT){mEv('sit',1);mEv('combo',combo,1);if(combo>maxCombo){maxCombo=combo;try{localStorage.setItem('subwayMaxCombo',maxCombo)}catch(e){}}}const sp=Math.max(0,Math.round((3.2-dp)*45*(ch==='s'?1.5:1))),st=vilSeat.some(v=>v.x===me.x&&v.y===me.y&&v.n.tk&&!v.n.seated);
- let pts=Math.round((100+sp+combo*20)*(1+diff));if(st)pts*=2;score+=pts;stress=Math.max(0,stress-Math.max(12,50-rd*2.2)*(1+.08*UP.r));burst(...scr(me.x,me.y,.9),st?'#c77dff':'#ffd23f');ftx.push({x:scr(me.x,me.y,1.6)[0],y:scr(me.x,me.y,1.6)[1],s:'+'+pts,l:1.3,c:'#ffd23f'});
+ combo++;okN++;if(!TUT){mEv('sit',1);mEv('combo',combo,1);if(combo>maxCombo){maxCombo=combo;try{localStorage.setItem('subwayMaxCombo',maxCombo)}catch(e){}}}const sp=Math.max(0,Math.round((3.2-dp)*45)),st=vilSeat.some(v=>v.x===me.x&&v.y===me.y&&v.n.tk&&!v.n.seated);
+ let pts=Math.round((100+sp+combo*20)*(1+diff));if(st)pts*=2;score+=pts;stress=Math.max(0,stress-Math.max(12,50-rd*2.2)*(1+.08*UP.r)*(ch==='s'?1.3:1));burst(...scr(me.x,me.y,.9),st?'#c77dff':'#ffd23f');ftx.push({x:scr(me.x,me.y,1.6)[0],y:scr(me.x,me.y,1.6)[1],s:'+'+pts,l:1.3,c:'#ffd23f'});
  sfx(st?'steal':'ok');toast(st?`빌런 자리 강탈! ×2 +${pts}`:`앉기 성공! +${pts}`,st?'vi':'ok');setMsg(`속도 보너스 +${sp} · 콤보 ${combo}연속`)}
 function fail(){sfx('no');buzz([70,40,70]);phase='pause';pt=1.2;after='no';combo=0;stress=Math.min(100,stress+8);toast('못 앉았다… 스트레스 +8','no');setMsg('다음 역에서 다시 도전하세요.')}
-let dashUntil=0,dashNext=0,lastTap=0;const dashCd=()=>10-7/9*(UP.p-1);
+let dashUntil=0,dashNext=0,lastTap=0;const dashCd=()=>10-7/9*(UP.p-1)+(ch==='h'?3:0);
 function tryDash(){if(state!=='play'||paused||clock<stunU||UP.p<1||me.sit||(phase!=='run'&&phase!=='door'))return;if(clock<dashNext){toast(`선점 대기 ${Math.ceil(dashNext-clock)}초`,'no');return}dashUntil=clock+1.5;dashNext=clock+dashCd();sfx('dash');buzz(25);burst(...scr(me.x,me.y,.5),'#bfe3ff');toast('슈슉!','ok')}
 function move(dx,dy){if(move1(dx,dy)&&clock<dashUntil&&!me.sit){burst(...scr(me.x,me.y,.5),'#bfe3ff');move1(dx,dy)}}
 function move1(dx,dy){if(state!=='play'||paused||clock<stunU||(phase!=='run'&&phase!=='door'))return;const nx=me.x+dx,ny=me.y+dy;
@@ -486,20 +486,20 @@ function leave(n){npcs.splice(npcs.indexOf(n),1);ghosts.push(Object.assign({},n,
  npcs.forEach(s=>{if(s.seated||s.tk)return;const d=Math.abs(s.x-seat.x)+Math.abs(s.y-seat.y);if(d<=(s.v?7:5)){const rt=(.35+d*.4+(s.rj||0)*.5)*Math.max(.4,1.15-.5*diff)*(1-.35*Math.min(1,rd/25))*(s.v?.8:1);if(rt<bt){bt=rt;b=s}}});
  if(b){b.tk=clock+bt;b.tg=seat;if(b.v){vilSeat.push({x:seat.x,y:seat.y,n:b});toast('가방맨이 자리를 노립니다','vi')}}}
 function comfort(){let n=0;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){if((dx||dy)&&at(me.x+dx,me.y+dy))n++}let f=.7+.12*n;if(me.y===4)f*=(me.x===2?1.2:1.5);
- npcs.forEach(o=>{if(o.seated)return;const d=Math.max(Math.abs(o.x-me.x),Math.abs(o.y-me.y));if(o.v&&d<=1)f*=1.3;if(o.sp==='drunk'&&d<=1)f*=1.4;if(o.sp==='caller'&&d<=2)f*=1.35});return f}
+ npcs.forEach(o=>{if(o.seated)return;const d=Math.max(Math.abs(o.x-me.x),Math.abs(o.y-me.y));if(o.v&&d<=1)f*=1.3;if(o.sp==='drunk'&&d<=1)f*=1.4;if(o.sp==='caller'&&d<=2)f*=ch==='s'?1.7:1.35});return f}
 function update(dt){clock+=dt;parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;p.l-=dt});parts=parts.filter(p=>p.l>0);ftx.forEach(f=>{f.y-=26*dt;f.l-=dt});ftx=ftx.filter(f=>f.l>0);
  npcs.forEach(n=>{n.px+=(n.x-n.px)*Math.min(1,dt*9);n.py+=(n.y-n.py)*Math.min(1,dt*9)});
  me.px+=(me.x-me.px)*Math.min(1,dt*14);me.py+=(me.y-me.py)*Math.min(1,dt*14);
  ghosts.forEach(g=>{g.px+=(g.tx-g.px)*Math.min(1,dt*2.2);g.py+=(g.ty-g.py)*Math.min(1,dt*2.2);g.a-=dt*.7});ghosts=ghosts.filter(g=>g.a>0);
  door+=((phase==='door'||after==='ok'?1:0)-door)*Math.min(1,dt*6);
  if(state!=='play')return;
- if(phase==='run'||phase==='door'){if(!me.sit){me.cf=comfort();if(ch==='u')me.cf=1+(me.cf-1)*.5;stress=Math.min(100,stress+(.8+diff)*(.5+.006*stress)*me.cf*(ch==='w'?.85:1)*(1+.075*rd)*1.3*dt*(1-.04*UP.m)*(EV==='crowd'?1.1:EV==='hot'?1.1:1)*(TUT?0:1))}
+ if(phase==='run'||phase==='door'){if(!me.sit){me.cf=comfort();if(ch==='u')me.cf=1+(me.cf-1)*.5;stress=Math.min(100,stress+(.8+diff)*(.5+.006*stress)*me.cf*(ch==='w'?.85:ch==='d'?1.15:1)*(1+.075*rd)*1.3*dt*(1-.04*UP.m)*(EV==='crowd'?1.1:EV==='hot'?1.1:1)*(TUT?0:1))}
   wander();gumPop();}
  if(stress>=100&&phase!=='pause')return over();
  const nxt=stn(rd+1);
  if(phase==='run'){t-=dt;if(brakeAt>0&&t<=brakeAt){brakeAt=-1;doBrake()}npcs.forEach(n=>{if(n.pe&&clock>=n.pe){n.act='look';n.pe=0}});
   if(t<=ANN&&!annD){annD=true;sfx('chime');{const sd=SIDE_KO[doorSide],tx=`이번 역은 ${nxt}, ${nxt}역입니다. 내리실 문은 ${sd}입니다.`;say(tx,1);setMsg(tx)};npcs.forEach(n=>{if(n.seated&&n.role!=='stayer'&&n.role!=='yield')n.act='look'})}
-  if(t<=BAG&&!bagD){bagD=true;npcs.forEach(n=>{if(n.seated&&(n.role==='leaver'||n.role==='fo'||n.role==='bluff'))n.act='pack';else if(n.seated&&n.role==='faker'&&(n.bf||0)<.35){n.act='pack';n.pe=clock+1.6}})}
+  if(t<=BAG*(ch==='u'?.6:1)&&!bagD){bagD=true;npcs.forEach(n=>{if(n.seated&&(n.role==='leaver'||n.role==='fo'||n.role==='bluff'))n.act='pack';else if(n.seated&&n.role==='faker'&&(n.bf||0)<.35){n.act='pack';n.pe=clock+1.6}})}
   if(t<=0){phase='door';dp=0;sfx('dooropen');setMsg(`${nxt}역에 도착했습니다. 문이 열립니다!`);npcs.forEach(n=>{if(n.seated&&n.role==='leaver')n.lv=clock+.3+(n.lj||0)*1.4;if(n.seated&&n.role==='fo')n.pe=clock+.9+(n.lj||0)*1.5;if(n.seated&&n.role==='bluff')n.pe=clock+.8+RR()*1.6;if(n.seated&&n.role==='yield'&&!me.sit&&me.y===n.y&&Math.abs(me.x-n.x)===1){n.lv=clock+.5;toast('자리를 양보해 줬어요!','ok')}})}}
  else if(phase==='door'){dp+=dt;npcs.forEach(n=>{if(n.pe&&clock>=n.pe){n.act=n.role==='fo'?'':'look';n.pe=0}});if(rushOn&&!rushDone&&dp>=DOOR-1.5)spawnRush();
   npcs.filter(n=>n.lv&&clock>=n.lv).forEach(n=>{n.lv=0;leave(n)});
