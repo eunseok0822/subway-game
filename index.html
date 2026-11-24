@@ -1250,9 +1250,9 @@ function hudFace(){const i=stress<34?0:stress<67?1:2;if(i!==faceI){faceI=i;const
 const SPK=(()=>{let r=7,a=[];const rnd=()=>(r=(r*16807)%2147483647)/2147483647;for(let i=0;i<900;i++)a.push([rnd()*5,rnd()*9,rnd()<.5,.5+rnd()]);return a})();
 const TSK={b:{n:'기본',p:0,bg0:'#1d2433',bg1:'#2e3850',wall:'#b9c3bd',up:'#e3e9e5',st:'#23282b',win:'#252c2f',winS:'#7d888c',door:'#d3dadc',fr:'#9aa5a9',b0:'#d6dddf',b1:'#a9b3b6',fl:'#a7adab',seat:'#6f747c',ceil:'#eef2ef'},
  r:{n:'레트로',d:'나무 바닥과 초록 좌석',p:5000,bg0:'#2a2118',bg1:'#4a3a28',wall:'#c9b48a',up:'#efe3c4',st:'#5a3b22',win:'#33301f',winS:'#8a876a',door:'#d8c79c',fr:'#a68e62',b0:'#e6d6ae',b1:'#b9a476',fl:'#8a5a34',seat:'#3f7a4a',ceil:'#f3e8c9',tint:'rgba(255,190,90,.10)'},
- n:{n:'밤 열차',d:'창밖 야경과 네온 조명',p:30000,bg0:'#07090f',bg1:'#141a2e',wall:'#2c3346',up:'#3a4258',st:'#b07bff',win:'#0b0f1e',winS:'#1a2240',door:'#465070',fr:'#2a3048',b0:'#3a4260',b1:'#232a40',fl:'#262b3a',seat:'#5a3fa0',ceil:'#4a5272',fx:'neon'},
- s:{n:'벚꽃 열차',d:'분홍 좌석과 흩날리는 꽃잎',p:100000,bg0:'#3a2430',bg1:'#5c3a4a',wall:'#f4d6df',up:'#fff0f4',st:'#d9708f',win:'#5d6f8e',winS:'#a9c4e0',door:'#fbe5ec',fr:'#e0a7b8',b0:'#fde8ee',b1:'#efc2cf',fl:'#e8d5d0',seat:'#e88aa6',ceil:'#fff6f8',fx:'petal'},
- g:{n:'황금 열차',d:'온통 금빛, 반짝반짝',p:500000,bg0:'#1a1406',bg1:'#3a2c0c',wall:'#d4a93a',up:'#f3d47a',st:'#5a3f0a',win:'#3a2a08',winS:'#8a6a20',door:'#f0cf6a',fr:'#b0841e',b0:'#f5dc8a',b1:'#c99a2c',fl:'#b8902e',seat:'#8a1f2a',ceil:'#fbe7a8',fx:'gold'}};
+ n:{n:'밤 열차',d:'창밖 야경과 네온 조명',p:15000,bg0:'#07090f',bg1:'#141a2e',wall:'#2c3346',up:'#3a4258',st:'#b07bff',win:'#0b0f1e',winS:'#1a2240',door:'#465070',fr:'#2a3048',b0:'#3a4260',b1:'#232a40',fl:'#262b3a',seat:'#5a3fa0',ceil:'#4a5272',fx:'neon'},
+ s:{n:'벚꽃 열차',d:'분홍 좌석과 흩날리는 꽃잎',p:40000,bg0:'#3a2430',bg1:'#5c3a4a',wall:'#f4d6df',up:'#fff0f4',st:'#d9708f',win:'#5d6f8e',winS:'#a9c4e0',door:'#fbe5ec',fr:'#e0a7b8',b0:'#fde8ee',b1:'#efc2cf',fl:'#e8d5d0',seat:'#e88aa6',ceil:'#fff6f8',fx:'petal'},
+ g:{n:'황금 열차',d:'온통 금빛, 반짝반짝',p:100000,bg0:'#1a1406',bg1:'#3a2c0c',wall:'#d4a93a',up:'#f3d47a',st:'#5a3f0a',win:'#3a2a08',winS:'#8a6a20',door:'#f0cf6a',fr:'#b0841e',b0:'#f5dc8a',b1:'#c99a2c',fl:'#b8902e',seat:'#8a1f2a',ceil:'#fbe7a8',fx:'gold'}};
 let skin='b',skOwn=['b'];try{skin=localStorage.getItem('subwaySkin')||'b';skOwn=JSON.parse(localStorage.getItem('subwaySkOwn')||'["b"]');if(!TSK[skin])skin='b'}catch(e){}
 const SKs=()=>TSK[skin]||TSK.b;
 function skinFx(S,moving){const k=K;if(S.tint){ctx.fillStyle=S.tint;ctx.fillRect(0,0,W,H)}
